@@ -1,52 +1,67 @@
-/*Table user {
-  id bigint [pk, increment]
-  create_at datetime
-  create_by varchar(255)
-  delete_at datetime 
-  delete_by varchar(255)
-  update_at datetime
-  update_by varchar(255)
-  address varchar(255)
-  email varchar(255)
-  firstname varchar(255)
-  lastname varchar(255)
-  phone varchar(255)
-  status int
-  username varchar(255)
-}
-  */
+// Hash password before saving or updating
 
-// models/User.js
-import connectDB from "../db/index.js";
+module.exports = User;
 
-const getAllUsers = () => {
-  return new Promise((resolve, reject) => {
-    connectDB.query("SELECT * FROM user", (err, results) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-};
+import { DataTypes } from "sequelize";
+import sequelize from "../db/index.js";
+import bcrypt from "bcrypt";
+const User = sequelize.define("User", {
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  create_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  create_by: {
+    type: DataTypes.STRING,
+  },
+  update_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  update_by: {
+    type: DataTypes.STRING,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING,
+  },
+  firstname: {
+    type: DataTypes.STRING,
+  },
+  lastname: {
+    type: DataTypes.STRING,
+  },
+  phone: {
+    type: DataTypes.STRING,
+  },
+  status: {
+    type: DataTypes.INTEGER,
+  },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+});
+User.beforeCreate(async (user) => {
+  if (user.password) {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+  }
+});
+User.beforeUpdate(async (user) => {
+  if (user.password) {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+  }
+});
 
-const createUser = (userData) => {
-  return new Promise((resolve, reject) => {
-    const { firstname, lastname, email, phone, address, username, status } =
-      userData;
-    connectDB.query(
-      "INSERT INTO user (firstname, lastname, email, phone, address, username, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [firstname, lastname, email, phone, address, username, status],
-      (err, results) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(results);
-        }
-      }
-    );
-  });
-};
-
-export { getAllUsers, createUser };
+export default User;

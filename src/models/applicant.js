@@ -5,7 +5,7 @@ const getAllApplicants = () => {
   return new Promise((resolve, reject) => {
     connectDB.query("SELECT * FROM applicant", (err, results) => {
       if (err) {
-        reject(err);
+        reject(new Error(err));
       } else {
         resolve(results);
       }
@@ -21,7 +21,7 @@ const createApplicant = (applicantData) => {
       [education, experience, user_id],
       (err, results) => {
         if (err) {
-          reject(err);
+          reject(new Error(err));
         } else {
           resolve(results);
         }
